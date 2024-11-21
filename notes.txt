@@ -1,0 +1,20 @@
+
+
+
+Notes for reference when i need to look at a different part. 
+
+# - Architecture
+Main controller
+ - Node to hold all nodes info.
+ - When requested for node id it should return public IP and public key of said node
+ - When a new node starts it should get their public IP and send it to the main controller
+
+Nodes
+   - ^
+   - Nodes should be ablet to receive a packet encrypt the packet and send it to the next node in the chain.
+        - When it gets a response it should be able to encrypt said packet and send it back to the node before.
+        - once the messages gets back to the original sender they should be able to decrypt the message with all the keys. 
+
+        computer -->(request)Encrypted with all keys in sequence --> (Entry Node) decrypt its layer --> (Node) decrypt its layer --> (exit Node) decrypt its layer: packet is unencrypted here --> webpage.
+
+        
