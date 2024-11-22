@@ -1,7 +1,11 @@
 extern crate pnet;
 
 use pnet::datalink::{self, NetworkInterface};
-use pnet::packet::{ethernet::EthernetPacket, Packet};
+use pnet::packet::Packet;
+use pnet::packet::tcp::TcpPacket;
+use pnet::packet::ipv4::Ipv4Packet;
+use pnet::packet::ip::IpNextHeaderProtocols;
+use pnet::packet::ethernet::EthernetPacket;
 use pnet:: datalink::Channel::Ethernet;
 
 
@@ -20,6 +24,7 @@ pub fn network() {
 
     let interfaces = get_interfaces();  
 
+
     let interface = interfaces
                         .into_iter()
                         .find(|iface| iface.name == "lo")
@@ -34,14 +39,28 @@ pub fn network() {
     loop {
         match rx.next() {
             Ok(packet) => {
-                let eth_packet = EthernetPacket::new(packet).unwrap();
-                // Now that we can capture the packets we need to send them out.
+                if let Some(eth_packet) = EthernetPacket::new(packet) {
+                    if let Some(ip_packet) = Ipv4Packet::new(eth_packet.payload()) {
 
-                let payload = match std::str::from_utf8(eth_packet.payload()){
-                    Ok(v) => println!("{}", v),
-                    Err(e) => println!("Invalid: {}", e),
-                };
+                        //Filter TCP packet
+                        if ip_packet.get_next_level_protocol() == IpNextHeaderProtocols::Tcp {
+                            if let Some(tcp_packet) = TcpPacket::new(ip_packet.payload()) {
+                                let raw_payload = tcp_packet.payload();
+
+                                match std::str::from_utf8(raw_payload) {
+                                    Ok(text) => println!("payload as text: {}", text),
+                                    Err(_) => println!("payload is not utf-8"),
+                                }
+                            }
+
+                        }
+
+
+                    }
                 
+                } else {
+                    println!("failed to parse packet");
+                }
             },
             Err(e) => {
                 eprintln!("Failed to receive packet: {:?}", e);
