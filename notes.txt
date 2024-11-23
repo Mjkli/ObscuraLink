@@ -17,4 +17,17 @@ Nodes
 
         computer -->(request)Encrypted with all keys in sequence --> (Entry Node) decrypt its layer --> (Node) decrypt its layer --> (exit Node) decrypt its layer: packet is unencrypted here --> webpage.
 
-        
+todo:
+
+ - capture packets from network
+ - send packets to network
+
+ - test on pis
+    test should be for the node in the middle to take a packet from one interface and forward it to the reciver
+    Sender pi -> Node -> reciver pi
+
+ - Setup Key sharing between nodes
+ - Setup encryption / decryption of packets.
+ - Pis should be able to send keys to eachother then the sender should be able to encrypt its packet then the reciver should be able to decrypt the packet.
+
+
