@@ -20,7 +20,7 @@ pub fn get_interfaces() -> Vec<NetworkInterface> {
 }
 
 
-pub fn network() {
+pub fn capture() {
 
     let interfaces = get_interfaces();  
 
