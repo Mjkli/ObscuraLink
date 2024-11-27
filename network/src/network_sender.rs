@@ -8,7 +8,13 @@ use pnet::packet::ip::IpNextHeaderProtocols;
 use pnet::packet::ethernet::EthernetPacket;
 use pnet:: datalink::Channel::Ethernet;
 
-fn send_packets() {
+
+fn gen_string() {
+    // generate a random string
     
+}
+
+
+pub fn send_packets() {
     println!("Hello, world!");
 }
