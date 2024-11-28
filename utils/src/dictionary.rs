@@ -1,4 +1,9 @@
 
+extern crate rand;
+
+
+use rand::Rng;
+
 
 pub struct Dictionary {
     words: Vec<String>,
@@ -13,10 +18,12 @@ impl Dictionary {
         }
     }
 
-    pub fn random(&self) -> String{
-        // get random number and select random word from dictionary
-        "".to_string()
+    pub fn random(&self) -> &String{
+        // get random number between 0 and len of words and select word from dictionary
+        let num = rand::thread_rng().gen_range(0..self.length);
+        &self.words[num]
     }
+    
     
     pub fn update_words(&mut self, additions: Vec<String>){
         for w in additions {
@@ -24,14 +31,13 @@ impl Dictionary {
             self.update_num();
         }
     }
-
-    pub fn update_num(&mut self) {
-        self.length = self.words.len();
-    }
-    
     pub fn print(&mut self) {
         println!("Words: {:?}", self.words);
         println!("length: {}", self.length);
+    }
+    
+    fn update_num(&mut self) {
+        self.length = self.words.len();
     }
 
 }
