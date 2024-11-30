@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 openssl = "0.10.68"
 pnet = "0.35.0"
+utils = {path="../utils"}

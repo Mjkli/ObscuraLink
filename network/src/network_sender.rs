@@ -8,13 +8,21 @@ use pnet::packet::ip::IpNextHeaderProtocols;
 use pnet::packet::ethernet::EthernetPacket;
 use pnet:: datalink::Channel::Ethernet;
 
+use utils::dictionary::Dictionary;
+
+use std::path::Path;
+
+
 
 fn gen_string() {
     // generate a random string
-    
+    let mut dic = Dictionary::new(Path::new("../first-names.txt"));
+    dic.print();
 }
 
 
 pub fn send_packets() {
+
+    gen_string();
     println!("Hello, world!");
 }
