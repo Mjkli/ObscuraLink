@@ -9,24 +9,23 @@ use std::process::exit;
 
 fn main() {
     // Setup command line arguments to switch between sending and receiving setups
-    // let args: Vec<String> = env::args().collect();
+    let args: Vec<String> = env::args().collect();
 
-    // if args.len() <= 1 {
-    //     eprintln!("Enter arguments: capture or send");
-    //     exit(1);
-    // }
+    if args.len() <= 1 {
+        eprintln!("Enter arguments: capture or send");
+        exit(1);
+    }
     
-    // let argument = &args[1];
+    let argument = &args[1];
 
-    // if argument == "capture" {
-    //     network_capture::capture();
-    // }
-    // else if argument == "send" {
+    if argument == "capture" {
+        network_capture::capture();
+    }
+    else if argument == "send" {
+        network_sender::send_packets();
+    } else {
+        eprintln!("Valid arguments: capture, send");
+    }
 
-    // } else {
-    //     eprintln!("Valid arguments: capture, send");
-    // }
-
-    network_sender::send_packets();
 
 }
