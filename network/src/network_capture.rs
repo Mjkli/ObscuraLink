@@ -11,6 +11,7 @@ use pnet:: datalink::Channel::Ethernet;
 
 
 pub fn get_interfaces() -> Vec<NetworkInterface> {
+    // get network interfaces print them to screen then return a vector of them
     let interfaces = datalink::interfaces();
     for interface in &interfaces {
         println!("{:#?}", interface.name);
