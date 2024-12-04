@@ -1,13 +1,16 @@
 // Project should be able to generate an ethernet packet and send it to a desired interface.
 
-use pnet::packet::ethernet::{ Ethernet, EtherType };
-use std::{thread, time};
 use std::path::Path;
-
-
+use pnet:: datalink;
+use pnet::packet::ethernet::{EtherTypes, MutableEthernetPacket};
+use pnet::packet::ipv4::{ Ipv4Packet, MutableIpv4Packet};
+use pnet::packet::Packet;
+use pnet::util::MacAddr;
+use std::thread::sleep;
 use utils::dictionary::Dictionary;
 use crate::network_capture::get_interfaces;
-
+use std::time::Duration;
+use std::net::IpAddr;
 
 
 pub fn send_packets() {
@@ -19,11 +22,6 @@ pub fn send_packets() {
     //      dest and source
     // 2. how to send that packet on a selected interface.
 
-    // EtherTypes are defined using int and describe what kind of protocol the ethernet packet is
-    // i.e. IPv4 / IPv6 / ARP / etc.
-    // IPv4 = 2048
-    // ieee reference:
-    // payload in this case need to be a byte-array
 
     let interfaces = get_interfaces();
 
@@ -35,23 +33,72 @@ pub fn send_packets() {
 
     let dic = Dictionary::new(Path::new("first-names.txt"));
 
+    // Need to setup tx, rx channels and attach them to an interface.
+    let (mut tx, mut _rx) =  match datalink::channel(&lo_int, Default::default()) {
+        Ok(datalink::Channel::Ethernet(tx,rx)) => (tx,rx),
+        Ok(_) => panic!("Unhandeled channel type"),
+        Err(e) => panic!("err: {}", e)
+    };
 
     loop {
         let data = dic.random();
         println!("name: {}", data);
         
-        let packet = Ethernet {
-            destination: lo_int.mac.expect("Failed to get lo mac"),
-            source: lo_int.mac.expect("Failed to get lo mac"),
-            ethertype: EtherType(2048),
-            payload: data.as_bytes().to_vec()
-        };
+        //Build IPv4 Payload
+        let mut ipv4_payload = vec![0u8; 20];
+        {
+            let mut ipv4_packet = MutableIpv4Packet::new(&mut ipv4_payload).expect("error");
+            ipv4_packet.set_version(4);
+            ipv4_packet.set_header_length(5);
+            ipv4_packet.set_total_length(20);
+            ipv4_packet.set_identification(0x1234);
+            ipv4_packet.set_ttl(64);
+            ipv4_packet.set_next_level_protocol(pnet::packet::ip::IpNextHeaderProtocols::Udp);
+            ipv4_packet.set_source(
+                    match lo_int.ips[0].ip() {
+                        IpAddr::V4(ipv4) => {ipv4}
+                        IpAddr::V6(ipv6) => { 
+                            eprintln!("Not working with ipv6");
+                            0.into()
+                        }
+                    }
+                );
+            ipv4_packet.set_destination(
+                    match lo_int.ips[0].ip() {
+                        IpAddr::V4(ipv4) => {ipv4}
+                        IpAddr::V6(ipv6) => { 
+                            eprintln!("Not working with ipv6");
+                            0.into()
+                        }
+                    }
+                );
+            ipv4_packet.set_checksum(pnet::packet::ipv4::checksum(&ipv4_packet.to_immutable())); 
+
+        }
+
+
+
+        // Build ethernet frame
+        let mut frame = vec![0u8; MutableEthernetPacket::minimum_packet_size() + ipv4_payload.len()];
+        {
+            let mut packet = MutableEthernetPacket::new(&mut frame).unwrap();
+            packet.set_destination(lo_int.mac.expect("failed to get mac"));
+            packet.set_source(lo_int.mac.expect("failed to get mac"));
+            packet.set_ethertype(EtherTypes::Ipv4);
+            packet.set_payload(&ipv4_payload);
+
+        }
+         
+
+
+
+
+        match tx.send_to(&frame, Some(lo_int.clone())) {
+            Some(Ok(_)) => println!("Sent packet!"),
+            Some(Err(e)) => eprintln!("Failed to send packet: {}", e),
+            None => eprintln!("Failed to send packet: No result")
+        }
         
-        println!("packet: {:?}", packet);
-
-
-        thread::sleep(time::Duration::from_secs(1));
-
-
+        sleep(Duration::from_secs(1));
     }
 }
