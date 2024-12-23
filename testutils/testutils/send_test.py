@@ -7,7 +7,7 @@ import time
 
 def main():
     data = b"abc"
-    pkt = Ether()/IP(dst="127.0.0.1")/TCP(sport=80, dport=80)/Raw(load=data)
+    pkt = Ether()/IP(dst="127.0.0.1")/UDP(sport=80, dport=80)/Raw(load=data)
     sendp(pkt, loop=1,inter=1, iface="lo");
     
 

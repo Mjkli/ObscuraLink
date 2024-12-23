@@ -2,7 +2,8 @@ extern crate pnet;
 
 use pnet::datalink::{self, NetworkInterface};
 use pnet::packet::Packet;
-use pnet::packet::tcp::TcpPacket;
+// use pnet::packet::tcp::TcpPacket;
+use pnet::packet::udp::UdpPacket;
 use pnet::packet::ipv4::Ipv4Packet;
 use pnet::packet::ip::IpNextHeaderProtocols;
 use pnet::packet::ethernet::EthernetPacket;
@@ -43,17 +44,16 @@ pub fn capture() {
                 if let Some(eth_packet) = EthernetPacket::new(packet) {
                     if let Some(ip_packet) = Ipv4Packet::new(eth_packet.payload()) {
 
-                        //Filter TCP packet
-                        if ip_packet.get_next_level_protocol() == IpNextHeaderProtocols::Tcp {
-                            if let Some(tcp_packet) = TcpPacket::new(ip_packet.payload()) {
-                                let raw_payload = tcp_packet.payload();
+                        //Filter UDP packet
+                        if ip_packet.get_next_level_protocol() == IpNextHeaderProtocols::Udp {
+                            if let Some(udp_packet) = UdpPacket::new(ip_packet.payload()) {
+                                let raw_payload = udp_packet.payload();
 
                                 match std::str::from_utf8(raw_payload) {
                                     Ok(text) => println!("payload as text: {}", text),
                                     Err(_) => println!("payload is not utf-8"),
                                 }
                             }
-
                         }
 
 
