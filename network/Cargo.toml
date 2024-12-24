@@ -7,3 +7,4 @@ edition = "2021"
 openssl = "0.10.68"
 pnet = "0.35.0"
 utils = {path="../utils"}
+encrypt = {path="../encrypt"}

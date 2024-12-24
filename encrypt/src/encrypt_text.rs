@@ -24,3 +24,4 @@ pub fn encrypt_text(data: &str, key: &[u8], iv: &[u8]) -> Vec<u8>{
     let ciphertext = encrypt(cipher, key, Some(iv), data.as_bytes());
     return ciphertext.unwrap();
 }
+

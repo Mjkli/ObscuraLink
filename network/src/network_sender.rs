@@ -16,12 +16,12 @@ use crate::network_capture::get_interfaces;
 use std::time::Duration;
 use std::net::IpAddr;
 
-
+use encrypt::encrypt_text;
 
 
 pub fn send_packets() {
     // Package the payload in a network packet
-    // - capture is using a EthernetPacket-IPv4-TCP 
+    // - capture is using a EthernetPacket-IPv4-udp 
     
     // 1. how to create an Ethernet packet with payload
     //      -- Since we are only testing on the lo interface we need the lo mac address to load the
@@ -50,6 +50,10 @@ pub fn send_packets() {
         let data = dic.random();
         println!("name: {}", data);
 
+         
+        let encrypted_data = encrypt_text(data);
+
+
         // Setup checksum
         let source_ip = match lo_int.ips[0].ip() {
             IpAddr::V4(ipv4) => {ipv4}
@@ -63,13 +67,13 @@ pub fn send_packets() {
         
         //Build Udp Packet
 
-        let mut udp_buffer = vec![0u8; MutableUdpPacket::minimum_packet_size() + data.len()];
+        let mut udp_buffer = vec![0u8; MutableUdpPacket::minimum_packet_size() + encrypted_data.len()];
         {
             let mut udp_packet = MutableUdpPacket::new(&mut udp_buffer).expect("Error");
             udp_packet.set_source(80);
             udp_packet.set_destination(80);
-            udp_packet.set_length((MutableUdpPacket::minimum_packet_size() + data.len()) as u16);
-            udp_packet.set_payload(data.as_bytes());
+            udp_packet.set_length((MutableUdpPacket::minimum_packet_size() + encrypted_data.len()) as u16);
+            udp_packet.set_payload(&encrypted_data);
         
 
 

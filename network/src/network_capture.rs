@@ -9,6 +9,7 @@ use pnet::packet::ip::IpNextHeaderProtocols;
 use pnet::packet::ethernet::EthernetPacket;
 use pnet:: datalink::Channel::Ethernet;
 
+use encrypt::encrypt_text;
 
 
 pub fn get_interfaces() -> Vec<NetworkInterface> {
