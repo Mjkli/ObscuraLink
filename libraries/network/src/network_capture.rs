@@ -49,6 +49,8 @@ pub fn capture() {
                         if ip_packet.get_next_level_protocol() == IpNextHeaderProtocols::Udp {
                             if let Some(udp_packet) = UdpPacket::new(ip_packet.payload()) {
                                 let raw_payload = udp_packet.payload();
+                                
+                                // Add decryption logic here
 
                                 match std::str::from_utf8(raw_payload) {
                                     Ok(text) => println!("payload as text: {}", text),

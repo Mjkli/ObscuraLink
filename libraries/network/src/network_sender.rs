@@ -21,12 +21,6 @@ use encrypt::encrypt_text;
 
 pub fn send_packets() {
     // Package the payload in a network packet
-    // - capture is using a EthernetPacket-IPv4-udp 
-    
-    // 1. how to create an Ethernet packet with payload
-    //      -- Since we are only testing on the lo interface we need the lo mac address to load the
-    //      dest and source
-    // 2. how to send that packet on a selected interface.
 
 
     let interfaces = get_interfaces();
