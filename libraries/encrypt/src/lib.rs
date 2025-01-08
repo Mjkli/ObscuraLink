@@ -10,7 +10,7 @@ pub fn encrypt_text(data: &str) -> Vec<u8>{
     return ciphertext.unwrap();
 }
 
-fn get_key_iv() -> (Vec<u8>, Vec<u8>){
+pub fn get_key_iv() -> (Vec<u8>, Vec<u8>){
 
     let cipher = Cipher::aes_256_cbc();
     let key_length = cipher.key_len();

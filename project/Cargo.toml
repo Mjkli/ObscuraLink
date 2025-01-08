@@ -4,3 +4,6 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+encrypt = { path ="../libraries/encrypt" }
+utils = { path = "../libraries/utils" }
+network = { path = "../libraries/network" }
