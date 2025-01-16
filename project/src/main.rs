@@ -1,8 +1,8 @@
 
 
 
-use encrypt::get_key_iv;
-
+use encrypt::encrypt_text::get_key_iv;
+use network::network_sender::send_packets;
 
 fn main() {
     // Get iv / key for encryption
@@ -14,7 +14,7 @@ fn main() {
     println!("key: {:?}", key);
     println!("iv: {:?}", iv);
 
-
+    send_packets(key,iv); 
 
 
 }

@@ -18,8 +18,8 @@ pub fn get_key_iv() -> (Vec<u8>, Vec<u8>){
     return (key, iv);
 }
 
-pub fn encrypt_text(data: &str, key: &[u8], iv: &[u8], cipher: Cipher::aes_265_cbc()) -> Vec<u8>{
-    let cipher = Cipher::aes_265_cbc(); 
+pub fn encrypt_text(data: &str, key: &[u8], iv: &[u8]) -> Vec<u8>{
+    let cipher = Cipher::aes_256_cbc(); 
     let ciphertext = encrypt(cipher, key, Some(iv), data.as_bytes());
     return ciphertext.unwrap();
 }

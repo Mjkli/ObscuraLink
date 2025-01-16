@@ -3,6 +3,14 @@ name = "network"
 version = "0.1.0"
 edition = "2021"
 
+include = [
+    "src/first-names.txt"
+]
+
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
 [dependencies]
 openssl = "0.10.68"
 pnet = "0.35.0"

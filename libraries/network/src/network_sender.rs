@@ -1,6 +1,5 @@
 // Project should be able to generate an ethernet packet and send it to a desired interface.
 
-use std::path::Path;
 use pnet:: datalink;
 use pnet::packet::ethernet::{EtherTypes, MutableEthernetPacket};
 use pnet::packet::ip::IpNextHeaderProtocols;
@@ -15,11 +14,12 @@ use utils::dictionary::Dictionary;
 use crate::network_capture::get_interfaces;
 use std::time::Duration;
 use std::net::IpAddr;
+use std::path::{self, Path, absolute};
 
-use encrypt::encrypt_text;
+use encrypt::encrypt_text::encrypt_text;
 
 
-pub fn send_packets() {
+pub fn send_packets(key: Vec<u8>, iv: Vec<u8>) {
     // Package the payload in a network packet
 
 
@@ -29,9 +29,9 @@ pub fn send_packets() {
                     .into_iter()
                     .find(|iface| iface.name == "lo")
                     .expect("failed to get interface");
-
-
-    let dic = Dictionary::new(Path::new("first-names.txt"));
+    
+    let p = absolute("data/first-names.txt");
+    let dic = Dictionary::new(&p.unwrap());
 
     // Need to setup tx, rx channels and attach them to an interface.
     let (mut tx, mut _rx) =  match datalink::channel(&lo_int, Default::default()) {
@@ -45,7 +45,7 @@ pub fn send_packets() {
         println!("name: {}", data);
 
          
-        let encrypted_data = encrypt_text(data);
+        let encrypted_data = encrypt_text(data, &key, &iv);
 
 
         // Setup checksum

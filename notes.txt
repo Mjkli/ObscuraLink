@@ -19,8 +19,8 @@ Nodes
 
 todo:
 
- - capture packets from network
- - send packets to network
+ x capture packets from network
+ x send packets to network
 
  - test on pis
     test should be for the node in the middle to take a packet from one interface and forward it to the reciver
@@ -31,3 +31,26 @@ todo:
  - Pis should be able to send keys to eachother then the sender should be able to encrypt its packet then the reciver should be able to decrypt the packet.
 
 
+
+
+
+
+
+ - Establish node service and client service. 
+ - Client does key share loop (private / public key)  to send AES key / info to decrypt the incoming packets.
+
+
+
+ - Start thinking on what http client to use so i can create the client software
+
+
+
+ Process flow:
+  - client reaches out to the nodes to get their keys.
+  - client sends each key their own AES key
+  - client encrypts the data in the order of the nodes using the AES keys.
+  - client sends the data to the first node
+  - Nodes forward it on until it makes the http request to the requested site.
+  - Site responds
+  - nodes will Add their AES key to the responded message and send it back to their node chain.
+  - Once the encrypted message gets back to the client, the client un-encrypts all the layers and views the data
