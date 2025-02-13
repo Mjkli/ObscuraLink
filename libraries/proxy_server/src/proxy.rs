@@ -1,6 +1,7 @@
 
+use http::uri::Uri;
 use http_body_util::{Full, Empty};
-use hyper::body::{Bytes, Frame};
+use hyper::body::{Bytes};
 use hyper::server::conn::http1;
 use hyper::service::service_fn;
 use hyper::{Request, Response};
@@ -16,26 +17,29 @@ fn print_type_of<T>(_: &T) {
 }
 
 
-async fn forward(_: Request<hyper::body::Incoming>) -> Result<Response<Full<Bytes>>,Infallible> {
-    let out  = service().await;
+async fn forward(inc: Request<hyper::body::Incoming>) -> Result<Response<Full<Bytes>>,Infallible> {
+   
+
+    println!("incoming: {:?}", inc.uri());
+
+    let out  = service(inc.uri()).await;
     
     Ok(Response::new(Full::new(Bytes::from(out.unwrap().clone()))))
 }
 
 
-async fn service() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
+async fn service(url: &Uri) -> Result<Vec<u8>, Box<dyn std::error::Error>> { 
 
-    let url = "https://www.google.com".parse::<hyper::Uri>()?;
-
+    println!("URL: {:?}", url);
     let host = url.host().expect("uri has no host");
     let port = url.port_u16().unwrap_or(80);
 
     let addr = format!("{}:{}",host,port);
 
-    let stream = TcpStream::connect(addr).await?; 
+
+    let stream = TcpStream::connect(addr.clone()).await?; 
     let io = TokioIo::new(stream);
-
-
+    
 
     let (mut sender, conn) = hyper::client::conn::http1::handshake(io).await?;
 
@@ -47,20 +51,21 @@ async fn service() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
         }
     });
 
-
+    
     let authority = url.authority().unwrap().clone();
+    
+    println!("authority: {:?}", authority);
+    println!("path: {:?}", addr);
 
-    let path = url.path();
     let req = Request::builder()
-                .uri(path)
+                .uri(addr)
                 .header(hyper::header::HOST, authority.as_str())
                 .body(Empty::<Bytes>::new())?;
+    
+    
+
 
     let mut res = sender.send_request(req).await?;
-
-    
-    // println!("Response: {}", res.status());
-    // println!("Headers: {:#?}\n", res.headers());
 
     let mut bytes: Vec<u8> = Vec::new();    
 
@@ -85,6 +90,7 @@ pub async fn proxy() -> Result<(), Box<dyn std::error::Error + Send + Sync>>{
         let (stream, _) = listener.accept().await?;
 
         let io = TokioIo::new(stream);
+
 
         //Spawn a tokio task to server multiple connections
         tokio::task::spawn(async move {
