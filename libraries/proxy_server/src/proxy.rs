@@ -1,6 +1,6 @@
 
 use http_body_util::{Full, Empty};
-use hyper::body::Bytes;
+use hyper::body::{Bytes, Frame};
 use hyper::server::conn::http1;
 use hyper::service::service_fn;
 use hyper::{Request, Response};
@@ -8,7 +8,6 @@ use std::convert::Infallible;
 use tokio::net::{TcpListener, TcpStream};
 use hyper_util::rt::TokioIo;
 use http_body_util::BodyExt;
-
 use std::net::SocketAddr;
 
 
@@ -18,13 +17,13 @@ fn print_type_of<T>(_: &T) {
 
 
 async fn forward(_: Request<hyper::body::Incoming>) -> Result<Response<Full<Bytes>>,Infallible> {
-    println!("Found request");
-    _ = service().await; 
-    Ok(Response::new(Full::new(Bytes::from("Hello World"))))
+    let out  = service().await;
+    
+    Ok(Response::new(Full::new(Bytes::from(out.unwrap().clone()))))
 }
 
 
-async fn service() -> Result<(), Box<dyn std::error::Error>> {
+async fn service() -> Result<Vec<u8>, Box<dyn std::error::Error>> {
 
     let url = "https://www.google.com".parse::<hyper::Uri>()?;
 
@@ -60,19 +59,19 @@ async fn service() -> Result<(), Box<dyn std::error::Error>> {
     let mut res = sender.send_request(req).await?;
 
     
-    println!("Response: {}", res.status());
-    println!("Headers: {:#?}\n", res.headers());
+    // println!("Response: {}", res.status());
+    // println!("Headers: {:#?}\n", res.headers());
 
-    
+    let mut bytes: Vec<u8> = Vec::new();    
 
+    // Collect frames to send back
     while let Some(next) = res.frame().await {
         let frame = next?;
         if let Some(chunk) = frame.data_ref() {
-            // io::stdout().write_all(chunk).await?;
-            print_type_of(chunk);
+            bytes.append(&mut chunk.to_vec());
         }
-    }
-    Ok(())
+    }   
+    Ok(bytes)
 }
 
 pub async fn proxy() -> Result<(), Box<dyn std::error::Error + Send + Sync>>{
