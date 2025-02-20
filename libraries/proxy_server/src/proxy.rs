@@ -1,110 +1,80 @@
 
-use http::uri::Uri;
-use http_body_util::{Full, Empty};
-use hyper::body::{Bytes};
-use hyper::server::conn::http1;
-use hyper::service::service_fn;
-use hyper::{Request, Response};
-use std::convert::Infallible;
-use tokio::net::{TcpListener, TcpStream};
-use hyper_util::rt::TokioIo;
-use http_body_util::BodyExt;
-use std::net::SocketAddr;
-
+use std::net::{TcpListener, TcpStream};
+use std::io::{Read, Write};
+use std::thread;
 
 fn print_type_of<T>(_: &T) {
     println!("{}", std::any::type_name::<T>());
 }
 
+// Parse Request
+fn parse_request(request: &str) -> Option<String> {
+   if request.starts_with("CONNECT") {
+        let parts: Vec<&str> = request.split_whitespace().collect();
+        if parts.len() > 1 {
+            return Some(parts[1].to_string());
+        }
+   }
+   None
+}
 
-async fn forward(inc: Request<hyper::body::Incoming>) -> Result<Response<Full<Bytes>>,Infallible> {
-   
-
-    println!("incoming: {:?}", inc.uri());
-
-    let out  = service(inc.uri()).await;
+fn handle_client(mut client_stream: TcpStream) {
     
-    Ok(Response::new(Full::new(Bytes::from(out.unwrap().clone()))))
+    let mut buffer = [0; 1024];
+    if let Ok(bytes_read) = client_stream.read(&mut buffer) {
+        let request = String::from_utf8_lossy(&buffer[..bytes_read]);
+        
+        if let Some(destination) = parse_request(&request) {
+            println!("Tunneling to: {}", destination);
+            tunnel(client_stream, &destination);
+        }
+    
+    }
 }
 
 
-async fn service(url: &Uri) -> Result<Vec<u8>, Box<dyn std::error::Error>> { 
+fn tunnel(mut client_stream: TcpStream, destination: &str) {
 
-    println!("URL: {:?}", url);
-    let host = url.host().expect("uri has no host");
-    let port = url.port_u16().unwrap_or(80);
+    match TcpStream::connect(destination) {
+        Ok(mut server_stream) => {
+            let response = b"HTTP/1.1 200 Connection Established\r\n\r\n";
+            client_stream.write_all(response).unwrap();
 
-    let addr = format!("{}:{}",host,port);
-
-
-    let stream = TcpStream::connect(addr.clone()).await?; 
-    let io = TokioIo::new(stream);
     
+            let mut client_clone = client_stream.try_clone().unwrap();
+            let mut server_clone = server_stream.try_clone().unwrap();
 
-    let (mut sender, conn) = hyper::client::conn::http1::handshake(io).await?;
+            // Forward data in both directions
+            thread::spawn(move || std::io::copy(&mut client_clone, &mut server_stream).unwrap());
+            thread::spawn(move || std::io::copy(&mut server_clone, &mut client_stream).unwrap());
 
 
-    //spawn a task to poll the connection
-    tokio::task::spawn(async move {
-        if let Err(err) = conn.await {
-            println!("Connection Failed: {:?}", err);
         }
-    });
-
-    
-    let authority = url.authority().unwrap().clone();
-    
-    println!("authority: {:?}", authority);
-    println!("path: {:?}", addr);
-
-    let req = Request::builder()
-                .uri(addr)
-                .header(hyper::header::HOST, authority.as_str())
-                .body(Empty::<Bytes>::new())?;
-    
-    
-
-
-    let mut res = sender.send_request(req).await?;
-
-    let mut bytes: Vec<u8> = Vec::new();    
-
-    // Collect frames to send back
-    while let Some(next) = res.frame().await {
-        let frame = next?;
-        if let Some(chunk) = frame.data_ref() {
-            bytes.append(&mut chunk.to_vec());
+        Err(err) => {
+            eprintln!("Failed to connect to {}: {}", destination, err);
         }
-    }   
-    Ok(bytes)
-}
-
-pub async fn proxy() -> Result<(), Box<dyn std::error::Error + Send + Sync>>{
-
-    let addr = SocketAddr::from(([127,0,0,1], 3000));
-    
-    let listener = TcpListener::bind(addr).await?;
-    
-    // proxy service to catch reuqests
-    loop {
-        let (stream, _) = listener.accept().await?;
-
-        let io = TokioIo::new(stream);
-
-
-        //Spawn a tokio task to server multiple connections
-        tokio::task::spawn(async move {
-            if let Err(err) = http1::Builder::new()
-                .serve_connection(io, service_fn(forward))
-                .await
-            {
-                eprintln!("Error serving connection: {:?}", err);
-            }
-        });
 
     }
 
 }
 
+
+pub fn proxy(){
+
+    let listener = TcpListener::bind("127.0.0.1:3000").unwrap();
+    
+    for stream in listener.incoming() {
+        match stream {
+            Ok(client_stream) => {
+                thread::spawn(move || handle_client(client_stream));
+            }
+            Err(e) => eprintln!("Connection failed: {}", e)
+
+        }
+
+
+    }
+
+}
 
 
