@@ -3,6 +3,10 @@ use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
 use std::thread;
 
+use local_ip_address::list_afinet_netifas;
+
+
+
 fn print_type_of<T>(_: &T) {
     println!("{}", std::any::type_name::<T>());
 }
@@ -61,9 +65,11 @@ fn tunnel(mut client_stream: TcpStream, destination: &str) {
 
 pub fn proxy(){
 
-    let listener = TcpListener::bind("127.0.0.1:3000").unwrap();
-    
-    for stream in listener.incoming() {
+    let net_ints = list_afinet_netifas().unwrap();
+
+    for (_, ip) in net_ints.iter() {
+      for stream in TcpListener::bind(format!("{}:3000", ip)).unwrap().incoming() {
+      
         match stream {
             Ok(client_stream) => {
                 thread::spawn(move || handle_client(client_stream));
@@ -71,10 +77,8 @@ pub fn proxy(){
             Err(e) => eprintln!("Connection failed: {}", e)
 
         }
-
-
+      }
     }
-
 }
 
 
