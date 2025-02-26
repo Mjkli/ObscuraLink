@@ -3,34 +3,51 @@ use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
 use std::thread;
 
-fn print_type_of<T>(_: &T) {
-    println!("{}", std::any::type_name::<T>());
+
+pub fn proxy(ip: &String, destination: &str){
+    
+    for stream in TcpListener::bind(format!("{}:3000", ip)).unwrap().incoming() { 
+        match stream {
+            Ok(client_stream) => {
+                let dest = destination.to_string();
+                thread::spawn(move || handle_client(client_stream, dest));
+            }
+            Err(e) => eprintln!("Connection failed: {}", e)
+
+        }
+    }
 }
 
-// Parse Request
+fn handle_client(mut client_stream: TcpStream, destination: String) {
+    
+    let mut buffer = [0; 1024];
+    if let Ok(bytes_read) = client_stream.read(&mut buffer) {
+        let request = String::from_utf8_lossy(&buffer[..bytes_read]);
+        if destination == "" {
+            if let Some(destination) = parse_request(&request) {
+                println!("Tunneling to: {}", destination);
+                tunnel(client_stream, &destination);
+            }
+        } else {
+            println!("Tunneling to: {}", destination);
+            tunnel(client_stream, format!("{}:3000", &destination).as_str());
+        }
+    
+    }
+}
+
+
 fn parse_request(request: &str) -> Option<String> {
    if request.starts_with("CONNECT") {
         let parts: Vec<&str> = request.split_whitespace().collect();
         if parts.len() > 1 {
+            println!("Sending to: {}", parts[1].to_string());
             return Some(parts[1].to_string());
         }
    }
    None
 }
 
-fn handle_client(mut client_stream: TcpStream) {
-    
-    let mut buffer = [0; 1024];
-    if let Ok(bytes_read) = client_stream.read(&mut buffer) {
-        let request = String::from_utf8_lossy(&buffer[..bytes_read]);
-        
-        if let Some(destination) = parse_request(&request) {
-            println!("Tunneling to: {}", destination);
-            tunnel(client_stream, &destination);
-        }
-    
-    }
-}
 
 
 fn tunnel(mut client_stream: TcpStream, destination: &str) {
@@ -59,17 +76,5 @@ fn tunnel(mut client_stream: TcpStream, destination: &str) {
 }
 
 
-pub fn proxy(ip: &String){
-
-    for stream in TcpListener::bind(format!("{}:3000", ip)).unwrap().incoming() { 
-        match stream {
-            Ok(client_stream) => {
-                thread::spawn(move || handle_client(client_stream));
-            }
-            Err(e) => eprintln!("Connection failed: {}", e)
-
-        }
-    }
-}
 
 

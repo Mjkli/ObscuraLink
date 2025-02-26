@@ -11,6 +11,9 @@ fn main() {
 
     let args: Vec<String> = env::args().collect();
     // proxy service to catch reuqests
-    proxy::proxy(&args[1]);
-    
+    if args.len() > 2 {
+        proxy::proxy(&args[1], &args[2]);
+    } else {
+        proxy::proxy(&args[1], "");
+    }
 }
