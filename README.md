@@ -1,6 +1,6 @@
 # ObsuraLink  
 
-ObsuraLink is a privacy-focused network that encrypts internet traffic through multiple nodes, functioning similarly to the Tor network. It ensures anonymity by forwarding traffic through a series of secure, self-hosted nodes.  
+ObsuraLink is a privacy-focused network that encrypts internet traffic through multiple nodes, functioning similarly to the Tor network. It ensures anonymity by forwarding traffic through a series of secure nodes.  
 
 ## Features  
 
