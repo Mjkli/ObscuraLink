@@ -38,13 +38,7 @@ ObsuraLink is a privacy-focused network that encrypts internet traffic through m
 
 - ✅ Forwarding traffic through multiple nodes  
 - 🚧 Encrypting traffic between nodes (in progress)  
-
-## Contributing  
-
-This project is maintained by **Anthony Bruno**. Contributions are welcome!  
-
-- **Report Issues**: Open an issue on the [GitHub Issues](https://github.com/your-repo/issues) page.  
-- **Submit Fixes**: Fork the repo, make changes, and submit a pull request.  
+  
 
 ## License  
 
