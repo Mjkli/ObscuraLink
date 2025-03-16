@@ -1,5 +1,9 @@
 use openssl::symm::{encrypt, Cipher};
 use openssl::rand::rand_bytes;
+use openssl::rsa::Rsa;
+use openssl::pkey::Private;
+
+
 
 
 pub fn get_key_iv() -> (Vec<u8>, Vec<u8>){
@@ -22,5 +26,9 @@ pub fn encrypt_text(data: &str, key: &[u8], iv: &[u8]) -> Vec<u8>{
     let cipher = Cipher::aes_256_cbc(); 
     let ciphertext = encrypt(cipher, key, Some(iv), data.as_bytes());
     return ciphertext.unwrap();
+}
+
+pub fn get_async_key() -> Rsa<Private> {
+    Rsa::generate(2048).unwrap()
 }
 
