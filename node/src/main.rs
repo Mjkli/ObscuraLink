@@ -3,13 +3,14 @@ mod types;
 
 #[macro_use] extern crate rocket;
 
-use types::ConnectionDB;
-use std::str;
+use types::{ ConnectionDB, ConnectionInfo };
 use std::sync::{Mutex, Arc};
-use openssl::pkey::PKey;
-use openssl::rsa::Rsa;
 use rocket::State;
 use std::net::IpAddr;
+use openssl::encrypt::Decrypter;
+
+
+
 
 
 
@@ -17,37 +18,45 @@ type DB = Arc<Mutex<ConnectionDB>>;
 
 
 
-#[get("/")]
-fn index() -> &'static str {
-    "Hello, world!"
-
-}
-
-
-#[get("/key")]
+#[get("/new")]
 fn get_key(db: &State<DB>, ip: IpAddr) -> Vec<u8> {
   
     let mut map = db.lock().unwrap();
-    //printing for Debugging
-    println!("map: {:?}", map);  
     
-    
-    let rsa = Rsa::generate(2048).unwrap();
-    let pkey = PKey::from_rsa(rsa).unwrap();
     
     if map.clients.contains_key(&ip.to_string()) {
         let key = map.clients.get(&ip.to_string());
         return match key {
-            Some(out) => out.public_key_to_pem().unwrap(),
+            Some(out) => out.get_public(),
             None => panic!()
         };
     } else {
-        map.clients.insert(ip.to_string(), pkey.clone());
-        pkey.public_key_to_pem().unwrap()
+        
+        map.clients.insert(ip.to_string(), ConnectionInfo::new());
+        map.clients.get(&ip.to_string()).unwrap().get_public()
     }
     
 
 }
+
+
+
+#[get("/parse/<given>")]
+fn parse(db: &State<DB>, given: String, ip: IpAddr) -> &'static str {
+     
+    let map = db.lock().unwrap();
+
+    let key = &map.clients.get(&ip.to_string()).unwrap().server_key;
+
+    let mut decrypter = Decrypter::new(&key).unwrap();
+
+
+    ""
+}
+
+
+
+
 
 
 
@@ -59,5 +68,5 @@ fn rocket() -> _ {
 
     rocket::build()
         .manage(db)
-        .mount("/", routes![index,get_key])
+        .mount("/", routes![get_key])
 }

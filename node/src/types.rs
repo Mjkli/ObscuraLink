@@ -1,37 +1,43 @@
 
 use std::collections::HashMap;
 
-use openssl::pkey::{PKey, Private};
+use openssl::rsa::Rsa;
+use openssl::pkey::{PKey, Private, Public};
 
 
 
-// #[derive(Debug)]
-// pub struct ConnectionInfo {
-//     pub server_key: Rsa<Private>,
-//     pub client_key: PKey<Public>
-// }
+#[derive(Debug)]
+pub struct ConnectionInfo {
+    pub server_key: PKey<Private>,
+}
 
 
-// impl ConnectionInfo {
+impl ConnectionInfo {
 
-//     pub fn new(client_key: PKey<Public>) -> ConnectionInfo { 
-//         ConnectionInfo {
-//             server_key: Self::get_key(),
-//             client_key
-//         }
+    pub fn new() -> ConnectionInfo { 
+        ConnectionInfo {
+            server_key: Self::new_key(),
+        }
             
-//     }
+    }
     
-//     fn get_key() -> Rsa<Private>{
-//         Rsa::generate(2048).unwrap()
-//     }
-// }
+    fn new_key() -> PKey<Private>{
+        let rsa = Rsa::generate(2048).unwrap();
+        PKey::from_rsa(rsa).unwrap()
+    }
+
+    pub fn get_public(&self) -> Vec<u8> {
+        self.server_key.public_key_to_pem().unwrap() 
+    }
+
+
+}
 
 
 
 #[derive(Debug)]
 pub struct ConnectionDB {
-    pub clients: HashMap<String, PKey<Private>>
+    pub clients: HashMap<String, ConnectionInfo>
 }
 
 impl ConnectionDB {
