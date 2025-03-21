@@ -42,11 +42,8 @@ fn get_key(db: &State<DB>, ip: IpAddr) -> Vec<u8> {
 
 #[get("/parse/<given>")]
 fn parse(db: &State<DB>, given: String, ip: IpAddr) -> &'static str {
-     
     let map = db.lock().unwrap();
-
     let key = &map.clients.get(&ip.to_string()).unwrap().server_key;
-
     let mut decrypter = Decrypter::new(&key).unwrap();
 
 
@@ -67,7 +64,7 @@ fn rocket() -> _ {
     let db = Arc::new(Mutex::new(ConnectionDB::new()));    
 
 
-    let _ = match reqwest::blocking::get("http://192.168.0.125:8000/register") {
+    let _ = match reqwest::blocking::get("http://192.168.0.125:8001/register") {
         Ok(resp) => resp.text().unwrap(),
         Err(err) => panic!("Error: {}", err)
     };
