@@ -9,8 +9,7 @@ use rocket::State;
 use std::net::IpAddr;
 use openssl::encrypt::Decrypter;
 
-
-
+use reqwest;
 
 
 
@@ -63,8 +62,18 @@ fn parse(db: &State<DB>, given: String, ip: IpAddr) -> &'static str {
 
 #[launch]
 fn rocket() -> _ {
-
+    //Setup Node and register to manager ( hard coded IP for now )
+    
     let db = Arc::new(Mutex::new(ConnectionDB::new()));    
+
+
+    let _ = match reqwest::blocking::get("http://192.168.0.125:8000/register") {
+        Ok(resp) => resp.text().unwrap(),
+        Err(err) => panic!("Error: {}", err)
+    };
+
+
+
 
     rocket::build()
         .manage(db)
