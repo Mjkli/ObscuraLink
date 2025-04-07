@@ -836,6 +836,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "json"
+version = "0.12.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "078e285eafdfb6c4b434e0d31e8cfcb5115b651496faca5749b88fafd4f23bfd"
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -971,9 +977,13 @@ dependencies = [
 name = "node"
 version = "0.1.0"
 dependencies = [
+ "json",
  "openssl",
+ "proxy_server",
  "reqwest",
  "rocket",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -1185,6 +1195,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "proxy_server"
+version = "0.1.0"
+
+[[package]]
 name = "quote"
 version = "1.0.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1387,6 +1401,7 @@ dependencies = [
  "rocket_codegen",
  "rocket_http",
  "serde",
+ "serde_json",
  "state",
  "tempfile",
  "time",

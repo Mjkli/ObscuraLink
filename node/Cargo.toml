@@ -4,6 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+proxy_server = { path = "../libraries/proxy_server" }
+json = "0.12.4"
 openssl = { version = "0.10.71", features=["vendored"] }
 reqwest = { version = "0.12.15", features=["blocking"] }
-rocket = "0.5.1"
+rocket =  { version = "0.5.1",   features=["json"] } 
+serde = "1.0.219"
+serde_json = "1.0.140"

@@ -3,9 +3,9 @@ use std::net::{TcpListener, TcpStream};
 use std::io::{Read, Write};
 
 
-pub fn proxy(ip: &str, destination: &str){
+pub fn proxy(ip: &str, destination: &str, port: i32){
     
-    for stream in TcpListener::bind(format!("{}:3000", ip)).unwrap().incoming() { 
+    for stream in TcpListener::bind(format!("{}:{}", ip, port)).unwrap().incoming() { 
         match stream {
             Ok(client_stream) => {
                 let dest = destination.to_string();

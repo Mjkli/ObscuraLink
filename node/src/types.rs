@@ -4,6 +4,8 @@ use std::collections::HashMap;
 use openssl::rsa::Rsa;
 use openssl::pkey::{PKey, Private, Public};
 
+use rocket::serde::{Serialize};
+
 
 
 #[derive(Debug)]
@@ -47,3 +49,7 @@ impl ConnectionDB {
         }
     }
 }
+
+
+
+
